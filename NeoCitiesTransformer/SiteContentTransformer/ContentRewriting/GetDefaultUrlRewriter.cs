@@ -97,7 +97,14 @@ namespace NeoCitiesTransformer.SiteContentTransformer.ContentRewriting
 
 		public enum UrlRewriterQueryStringOptions
 		{
+			/// <summary>
+			/// This will break down the Query String name-key pairs and make them part of the Url - eg. "search?term=test" may become "search-term-test.html"
+			/// </summary>
 			IncorporateQueryString,
+
+			/// <summary>
+			/// This will leave the Query String unaltered, changing only the Url path - eg. "search?term=test" may become "search.html?term=test"
+			/// </summary>
 			MaintainSeparateQueryString
 		}
 	}

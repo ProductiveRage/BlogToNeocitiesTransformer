@@ -65,7 +65,17 @@ namespace NeoCitiesTransformer.SiteContentTransformer.ContentRewriting
 					if (value.IsAbsoluteUri)
 						continue;
 
-					attribute.Value = _urlRewriter(value).ToString();
+					var rewrittenUrl = _urlRewriter(value);
+					if (rewrittenUrl.ToString().Split('?')[0].Split('#')[0].Trim('\\', '/') == "index.html")
+					{
+						// If the urlRewriter has left a link pointing to "index.html" then change this to the relative url "/" since "index.html"
+						// is the default page for NeoCities and many many other solutions.
+						var breakPoint = rewrittenUrl.ToString().IndexOfAny(new[] { '?', '#' });
+						attribute.Value = "/" + (breakPoint == -1 ? "" : rewrittenUrl.ToString().Substring(breakPoint));
+					}
+					else
+						attribute.Value = rewrittenUrl.ToString();
+
 					referencedRelativeUrls.Add(value);
 				}
 			}
