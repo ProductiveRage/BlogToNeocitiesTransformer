@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using NeoCitiesTransformer.SearchIndexDataStorage;
 using NeoCitiesTransformer.SiteContentTransformer;
 using NeoCitiesTransformer.SiteContentTransformer.ContentRewriting;
@@ -72,15 +73,14 @@ namespace NeoCitiesTransformer
 					new Uri("http://www.productiverage.com/feed")	// .. onto this
 				)
 			);
-			NeoCitiesGenerator.Regenerate(
-				sourceSite,
-				destination,
-				urlRewriter,
-				contentRewriter => new ConditionalCustomPostRewriter(
+
+			// Replace the "Scripts-Site.js" script tag with four distinct script tags (one of which is "Scripts-Site.js" so we're really adding scripts to
+			// the existing markup rather than replacing / taking away), apply to all urls that are renamed to "*.html" 
+			Func<IRewriteContent, IRewriteContent> scriptInjectingContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
 					contentRewriter,
-					sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase), // Replacement condition
-					"<script type=\"text/javascript\" src=\"Scripts-Site.js\"></script>", // Value to replace
-					string.Join( // Value to replace it with
+				sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase),
+				"<script type=\"text/javascript\" src=\"Scripts-Site.js\"></script>",
+				string.Join(
 						Environment.NewLine + "\t",
 						new[]
 						{
@@ -91,6 +91,36 @@ namespace NeoCitiesTransformer
 							"<script type=\"text/javascript\" src=\"SearchTermHighlighter.js\"></script>",
 							"<script type=\"text/javascript\" src=\"SearchPage.js\"></script>",
 						}
+				)
+			);
+
+			// Replace the Google Analytics API Key with one specific to the NeoCities version of the Blog, apply to all urls that are mapped to "*.html"
+			Func<IRewriteContent, IRewriteContent> googleAnalyticsIdChangingContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
+				contentRewriter,
+				sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase),
+				"UA-32312857-1",
+				"UA-42383037-1"
+			);
+
+			// Replace the "No search term entered" message with the text "Searching.." (the javascript in SearchPage.js will update this content if a
+			// search is being performed and only show "No search term entered" if no search term has indeed been specified). A requires-javscript
+			// message is also included in a "noscript" tag. This replacement is only required on the search.html page.
+			Func<IRewriteContent, IRewriteContent> javascriptSearchMessageContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
+				contentRewriter,
+				sourceUri => urlRewriter(sourceUri).ToString().Equals("search.html", StringComparison.InvariantCultureIgnoreCase),
+				new Regex("<p class=\\\"NoResults\\\">\\s+No search term entered\\.\\.\\s+</p>"),
+				"<p class=\"NoResults\">Searching..</p><noscript><p class=\"NoResults\">This functionality requires javascript</p></noscript>"
+			);
+
+			NeoCitiesGenerator.Regenerate(
+				sourceSite,
+				destination,
+				urlRewriter,
+				contentRewriter => googleAnalyticsIdChangingContentRewriter(
+					scriptInjectingContentRewriter(
+						javascriptSearchMessageContentRewriter(
+							contentRewriter
+						)
 					)
 				)
 			);
