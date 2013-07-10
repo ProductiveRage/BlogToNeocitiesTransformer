@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace NeoCitiesTransformer.SiteContentTransformer.ContentRewriting
 {
@@ -6,27 +7,33 @@ namespace NeoCitiesTransformer.SiteContentTransformer.ContentRewriting
 	{
 		private readonly IRewriteContent _preRewriter;
 		private readonly Predicate<Uri> _sourceUrlCondition;
-		public ConditionalCustomPostRewriter(IRewriteContent preRewriter, Predicate<Uri> sourceUrlCondition, string valueToBeReplaced, string valueToReplaceWith)
+		public ConditionalCustomPostRewriter(IRewriteContent preRewriter, Predicate<Uri> sourceUrlCondition, Regex toBeReplaced, string valueToReplaceWith)
 		{
 			if (preRewriter == null)
 				throw new ArgumentNullException("preRewriter");
 			if (sourceUrlCondition == null)
 				throw new ArgumentNullException("sourceUrlCondition");
-			if (valueToBeReplaced == null)
-				throw new ArgumentNullException("valueToBeReplaced");
+			if (toBeReplaced == null)
+				throw new ArgumentNullException("toBeReplaced");
 			if (valueToReplaceWith == null)
 				throw new ArgumentNullException("valueToReplaceWith");
 
 			_preRewriter = preRewriter;
 			_sourceUrlCondition = sourceUrlCondition;
-			ValueToBeReplaced = valueToBeReplaced;
+			ToBeReplaced = toBeReplaced;
 			ValueToReplaceWith = valueToReplaceWith;
+		}
+		public ConditionalCustomPostRewriter(IRewriteContent preRewriter, Predicate<Uri> sourceUrlCondition, string valueToBeReplaced, string valueToReplaceWith)
+			: this(preRewriter, sourceUrlCondition, new Regex(Regex.Escape(valueToBeReplaced ?? "")), valueToReplaceWith)
+		{
+			if (valueToBeReplaced == null)
+				throw new ArgumentNullException("valueToBeReplaced");
 		}
 
 		/// <summary>
 		/// This will never be null
 		/// </summary>
-		public string ValueToBeReplaced { get; private set; }
+		public Regex ToBeReplaced { get; private set; }
 
 		/// <summary>
 		/// This will never be null
@@ -47,9 +54,20 @@ namespace NeoCitiesTransformer.SiteContentTransformer.ContentRewriting
 				return reWrittenContent;
 
 			return new RewrittenContent(
-				reWrittenContent.Content.Replace(ValueToBeReplaced, ValueToReplaceWith),
+				MakeReplacement(reWrittenContent.Content),
 				reWrittenContent.ReferencedRelativeUrls
 			);
+		}
+
+		/// <summary>
+		/// This is only public for testing
+		/// </summary>
+		public string MakeReplacement(string content)
+		{
+			if (content == null)
+				throw new ArgumentNullException("content");
+
+			return ToBeReplaced.Replace(content, ValueToReplaceWith);
 		}
 	}
 }
