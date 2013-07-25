@@ -5,9 +5,11 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using BlogBackEnd.FullTextIndexing;
 using BlogBackEnd.FullTextIndexing.CachingPostIndexers;
 using FullTextIndexer.Core.Indexes;
+using NeoCitiesTransformer.Misc;
 using Newtonsoft.Json;
 
 namespace NeoCitiesTransformer.SearchIndexDataStorage
@@ -55,7 +57,9 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 				})
 			});
 
-			// The all-Post Summary data is going to be an associative array of token to Key/Weight matches (no Source Location data)
+			// The all-Post Summary data is going to be an associative array of token to Key/Weight matches (no Source Location data). This won't be
+			// compressed so that the initial searching can be as quick as possible (the trade-off between valuable space at NeoCities hosting vs the
+			// speed of native compression - ie. the gzip that happens over the wire but that doesn't benefit the backend storage - is worth it)
 			var allPostsSummaryDictionary = matchData.ToDictionary(
 				tokenMatch => tokenMatch.t,
 				tokenMatch => tokenMatch.l.Select(weightedEntry => new JsSourceLocation
@@ -66,11 +70,12 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			);
 			File.WriteAllText(
 				Path.Combine(destination.FullName, "SearchIndex-SummaryDictionary.js"),
-				SerialiseToJson(allPostsSummaryDictionary)
+				SerialiseToJson(allPostsSummaryDictionary),
+				new UTF8Encoding()
 			);
 
 			// The per-Post Detail data is going to be an associative array of token to Key/Weight matches (with Source Location) but only a single
-			// Key will appear in each dictionary
+			// Key will appear in each dictionary. This data WILL be compressed since it takes up a lot of space considering the NeoCities limits.
 			var perPostData = new Dictionary<int, IEnumerable<JsTokenMatch>>();
 			foreach (var entry in matchData)
 			{
@@ -91,13 +96,16 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			foreach (var postId in perPostData.Keys)
 			{
 				File.WriteAllText(
-					Path.Combine(destination.FullName, "SearchIndex-" + postId + "-CompleteDictionary.js"),
-					SerialiseToJson(
-						perPostData[postId].ToDictionary(
-							entry => entry.t,
-							entry => entry.l
+					Path.Combine(destination.FullName, "SearchIndex-" + postId + "-CompleteDictionary.lz.txt"),
+					LZStringCompress.CompressToUTF16(
+						SerialiseToJson(
+							perPostData[postId].ToDictionary(
+								entry => entry.t,
+								entry => entry.l
+							)
 						)
-					)
+					),
+					new UTF8Encoding()
 				);
 			}
 		}

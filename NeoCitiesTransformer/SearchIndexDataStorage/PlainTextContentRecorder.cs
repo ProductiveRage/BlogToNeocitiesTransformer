@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Blog.Models;
 using BlogBackEnd.Models;
+using NeoCitiesTransformer.Misc;
 using Newtonsoft.Json;
 
 namespace NeoCitiesTransformer.SearchIndexDataStorage
@@ -27,30 +29,36 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			if (!destination.Exists)
 				throw new ArgumentException("destination does not exist");
 
-			// Load the Post Data
+			// Load the Post Data (all files will be compressed to take up as little space as possible in the NeoCities hosting)
 			// - Generate "SearchIndex-Titles.js"
 			// - Generate "SearchIndex-Content-{0}.txt"
 			var posts = (new SingleFolderPostRetriever(postSourceFolder)).Get();
 			File.WriteAllText(
 				Path.Combine(
 					destination.FullName,
-					"SearchIndex-Titles.js"
+					"SearchIndex-Titles.lz.txt"
 				),
-				JsonConvert.SerializeObject(
-					posts.ToDictionary(
-						p => p.Id,
-						p => p.Title.Trim()
+				LZStringCompress.CompressToUTF16(
+					JsonConvert.SerializeObject(
+						posts.ToDictionary(
+							p => p.Id,
+							p => p.Title.Trim()
+						)
 					)
-				)
+				),
+				new UTF8Encoding()
 			);
 			foreach (var post in posts)
 			{
 				File.WriteAllText(
 					Path.Combine(
 						destination.FullName,
-						"SearchIndex-Content-" + post.Id + ".txt"
+						"SearchIndex-Content-" + post.Id + ".lz.txt"
 					),
-					post.GetContentAsPlainText()
+					LZStringCompress.CompressToUTF16(
+						post.GetContentAsPlainText()
+					),
+					new UTF8Encoding()
 				);
 			}
 		}
