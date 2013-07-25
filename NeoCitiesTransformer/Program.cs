@@ -37,18 +37,21 @@ namespace NeoCitiesTransformer
 				PlainTextContentRecorder.Write(postSourceFolder, destination);
 			}
 
+			// 2013-07-25 DWR: This is no longer required now that NeoCities support drag-and-drop multiple file upload!
+			/*
 			// This is the workaround for the can-only-upload-single-files-through-the-NeoCities-interface limitation, it uploads files one at a time
 			// but requires a "neocities" cookie with an authorisation token in (acquired after you log in) and a csfr-token form field value. Both
 			// of these can be obtained by watching with Fiddler a single file upload being performed manually. There might be a better way to
 			// handle all of this but this approach has been enough to get me going.
-			var authCookieValue = "GetMeFromCookieDataVisibleInFiddler";
-			var csrfToken = "GetMeFromFiddlerAsWellOrByTypingThisIntoTheBrowserConsoleFromTheUploadPage: $('meta[name=csrf-token]')[0].content";
+			var authCookieValue = "BAh7CUkiD3Nlc3Npb25faWQGOgZFVEkiRWRjNmRmNmJkOWY4NWY4Y2UwMGE1%0AMTQ5YThhY2ZhY2JkNmRlZDc3ODUyYTMyMGQ2ZmUxMmUxZmNkMzk4MGI0MmEG%0AOwBGSSIQX2NzcmZfdG9rZW4GOwBGSSIxZ0R6Tm81dld1SHQvbHp6TVJkaFcx%0ARndSS0dVbTdhNkVzNEMrOTNtS1Blcz0GOwBGSSIKZmxhc2gGOwBGewBJIgdp%0AZAY7AEZpAuoo%0A--db7b015d8335629edfb4115e0385105f6c3e37f4";
+			var csrfToken = "gDzNo5vWuHt/lzzMRdhW1FwRKGUm7a6Es4C+93mKPes=";
 			FileUploader.UploadFiles(
 				"neocities",
 				authCookieValue,
 				csrfToken,
 				destination
 			);
+			 */
 		}
 
 		/// <summary>
@@ -90,6 +93,7 @@ namespace NeoCitiesTransformer
 							"<script type=\"text/javascript\" src=\"IndexSearchGenerator.js\"></script>",
 							"<script type=\"text/javascript\" src=\"SearchTermHighlighter.js\"></script>",
 							"<script type=\"text/javascript\" src=\"SearchPage.js\"></script>",
+							"<script type=\"text/javascript\" src=\"LZString.js\"></script>",
 						}
 				)
 			);
@@ -107,9 +111,9 @@ namespace NeoCitiesTransformer
 			// message is also included in a "noscript" tag. This replacement is only required on the search.html page.
 			Func<IRewriteContent, IRewriteContent> javascriptSearchMessageContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
 				contentRewriter,
-				sourceUri => urlRewriter(sourceUri).ToString().Equals("search.html", StringComparison.InvariantCultureIgnoreCase),
+				sourceUri => (sourceUri.PathAndQuery == "/Search"),
 				new Regex("<p class=\\\"NoResults\\\">\\s+No search term entered\\.\\.\\s+</p>"),
-				"<p class=\"NoResults\">Searching..</p><noscript><p class=\"NoResults\">This functionality requires javascript</p></noscript>"
+				"<p class=\"NoResults\">Searching..</p><noscript><p class=\"NoResults\"><em>Note: This functionality requires javascript.</em><br/><br/></p></noscript>"
 			);
 
 			NeoCitiesGenerator.Regenerate(
