@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Misc\LZStringCompress.cs" />
     <Compile Include="SearchIndexDataStorage\JsonSearchIndexDataRecorder.cs" />
     <Compile Include="SearchIndexDataStorage\PlainTextContentRecorder.cs" />
     <Compile Include="SiteContentTransformer\ContentRewriting\ConditionalCustomPostRewriter.cs" />
