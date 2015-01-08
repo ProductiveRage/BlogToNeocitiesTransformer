@@ -80,7 +80,7 @@ namespace NeoCitiesTransformer
 			// Replace the "Scripts-Site.js" script tag with four distinct script tags (one of which is "Scripts-Site.js" so we're really adding scripts to
 			// the existing markup rather than replacing / taking away), apply to all urls that are renamed to "*.html" 
 			Func<IRewriteContent, IRewriteContent> scriptInjectingContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
-					contentRewriter,
+				contentRewriter,
 				sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase),
 				"<script type=\"text/javascript\" src=\"Scripts-Site.js\"></script>",
 				string.Join(
@@ -106,6 +106,16 @@ namespace NeoCitiesTransformer
 				"UA-42383037-1"
 			);
 
+			// Replace "http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js" with "//ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"
+			// so it will work over http or https connections (this will be in the main site when I update it next but I want to fix it on Neocities now
+			// since its links default to https and it's refusing to load jQuery in Chrome now)
+			Func<IRewriteContent, IRewriteContent> jQueryProtocolLessRequestsForHttps = contentRewriter => new ConditionalCustomPostRewriter(
+				contentRewriter,
+				sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase),
+				"http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js",
+				"//ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"
+			);
+
 			// Replace the "No search term entered" message with the text "Searching.." (the javascript in SearchPage.js will update this content if a
 			// search is being performed and only show "No search term entered" if no search term has indeed been specified). A requires-javscript
 			// message is also included in a "noscript" tag. This replacement is only required on the search.html page.
@@ -120,10 +130,12 @@ namespace NeoCitiesTransformer
 				sourceSite,
 				destination,
 				urlRewriter,
-				contentRewriter => googleAnalyticsIdChangingContentRewriter(
-					scriptInjectingContentRewriter(
-						javascriptSearchMessageContentRewriter(
-							contentRewriter
+				contentRewriter => jQueryProtocolLessRequestsForHttps(
+					googleAnalyticsIdChangingContentRewriter(
+						scriptInjectingContentRewriter(
+							javascriptSearchMessageContentRewriter(
+								contentRewriter
+							)
 						)
 					)
 				)

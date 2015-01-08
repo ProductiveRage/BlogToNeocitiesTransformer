@@ -33,27 +33,30 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			// - Generate "SearchIndex-Titles.js"
 			// - Generate "SearchIndex-Content-{0}.txt"
 			var posts = (new SingleFolderPostRetriever(postSourceFolder)).Get();
+			var titlesFilename = "SearchIndex-Titles.lz.txt";
+			Console.WriteLine("Writing " + titlesFilename);
+			var titlesJson = JsonConvert.SerializeObject(
+				posts.ToDictionary(
+					p => p.Id,
+					p => new { Title = p.Title.Trim(), Slug = p.Slug }
+				)
+			);
 			File.WriteAllText(
 				Path.Combine(
 					destination.FullName,
-					"SearchIndex-Titles.lz.txt"
+					titlesFilename
 				),
-				LZStringCompress.CompressToUTF16(
-					JsonConvert.SerializeObject(
-						posts.ToDictionary(
-							p => p.Id,
-							p => p.Title.Trim()
-						)
-					)
-				),
+				LZStringCompress.CompressToUTF16(titlesJson),
 				new UTF8Encoding()
 			);
 			foreach (var post in posts)
 			{
+				var contentFilename = "SearchIndex-Content-" + post.Id + ".lz.txt";
+				Console.WriteLine("Writing " + contentFilename);
 				File.WriteAllText(
 					Path.Combine(
 						destination.FullName,
-						"SearchIndex-Content-" + post.Id + ".lz.txt"
+						contentFilename
 					),
 					LZStringCompress.CompressToUTF16(
 						post.GetContentAsPlainText()
