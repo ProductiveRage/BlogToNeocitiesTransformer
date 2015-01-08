@@ -68,8 +68,10 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 					w = weightedEntry.w
 				})
 			);
+			var summaryFilename = "SearchIndex-SummaryDictionary.js";
+			Console.WriteLine("Writing " + summaryFilename);
 			File.WriteAllText(
-				Path.Combine(destination.FullName, "SearchIndex-SummaryDictionary.js"),
+				Path.Combine(destination.FullName, summaryFilename),
 				SerialiseToJson(allPostsSummaryDictionary),
 				new UTF8Encoding()
 			);
@@ -95,8 +97,10 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			}
 			foreach (var postId in perPostData.Keys)
 			{
+				var detailFilename = "SearchIndex-" + postId + "-CompleteDictionary.lz.txt";
+				Console.WriteLine("Writing " + detailFilename);
 				File.WriteAllText(
-					Path.Combine(destination.FullName, "SearchIndex-" + postId + "-CompleteDictionary.lz.txt"),
+					Path.Combine(destination.FullName, detailFilename),
 					LZStringCompress.CompressToUTF16(
 						SerialiseToJson(
 							perPostData[postId].ToDictionary(
