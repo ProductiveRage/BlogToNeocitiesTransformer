@@ -14,11 +14,29 @@ namespace NeoCitiesTransformer.SiteContentTransformer.DataRetrieval
 				throw new ArgumentException("The specified url must be absolute");
 
 			var webRequest = WebRequest.Create(url);
-			using (var stream = webRequest.GetResponse().GetResponseStream())
+			try
 			{
-				using (var reader = new StreamReader(stream))
+				using (var response = webRequest.GetResponse())
 				{
-					return reader.ReadToEnd();
+					using (var stream = response.GetResponseStream())
+					{
+						using (var reader = new StreamReader(stream))
+						{
+							return reader.ReadToEnd();
+						}
+					}
+				}
+			}
+			catch (WebException e)
+			{
+				// This is how the 404 page may be read
+				var response = e.Response;
+				using (var stream = response.GetResponseStream())
+				{
+					using (var reader = new StreamReader(stream))
+					{
+						return reader.ReadToEnd();
+					}
 				}
 			}
 		}
