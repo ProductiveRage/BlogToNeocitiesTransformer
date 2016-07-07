@@ -66,6 +66,9 @@ namespace NeoCitiesTransformer.SiteContentTransformer.ContentRewriting
 						continue;
 
 					var rewrittenUrl = _urlRewriter(value);
+					if (rewrittenUrl == null)
+						continue;
+
 					if (rewrittenUrl.ToString().Split('?')[0].Split('#')[0].Trim('\\', '/') == "index.html")
 					{
 						// If the urlRewriter has left a link pointing to "index.html" then change this to the relative url "/" since "index.html"
