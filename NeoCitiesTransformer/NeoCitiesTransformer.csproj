@@ -73,7 +73,7 @@
     <Compile Include="SearchIndexDataStorage\JsonSearchIndexDataRecorder.cs" />
     <Compile Include="SearchIndexDataStorage\PlainTextContentRecorder.cs" />
     <Compile Include="SiteContentTransformer\ContentRewriting\ConditionalCustomPostRewriter.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\DefaultUrlRewriter.cs" />
+    <Compile Include="SiteContentTransformer\ContentRewriting\DefaultNeocitiesUrlRewriter.cs" />
     <Compile Include="SiteContentTransformer\ContentRewriting\UrlRewriter.cs" />
     <Compile Include="SiteContentTransformer\ContentRewriting\CssContentRewriter.cs" />
     <Compile Include="SiteContentTransformer\ContentRewriting\HtmlContentRewriter.cs" />

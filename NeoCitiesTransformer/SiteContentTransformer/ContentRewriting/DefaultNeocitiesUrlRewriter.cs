@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace NeoCitiesTransformer.SiteContentTransformer.ContentRewriting
 {
-	public static class DefaultUrlRewriter
+	public static class DefaultNeocitiesUrlRewriter
 	{
 		public static UrlRewriter Get(UrlRewriterQueryStringOptions queryStringOptions, params Tuple<Uri, Uri>[] customOverrides)
 		{
