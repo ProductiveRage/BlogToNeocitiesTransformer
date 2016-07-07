@@ -10,7 +10,7 @@ namespace NeoCitiesTransformer
 {
 	public class Program_GitHubPages
 	{
-		public void Go()
+		public static void Go()
 		{
 			var destination = new DirectoryInfo("GitHubPages");
 			if (destination.Exists)
