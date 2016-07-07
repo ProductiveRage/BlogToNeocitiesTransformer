@@ -15,7 +15,7 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 				root,
 				destination,
 				DefaultNeocitiesUrlRewriter.Get(DefaultNeocitiesUrlRewriter.UrlRewriterQueryStringOptions.IncorporateQueryString),
-				null
+				optionalRewriteIntercepter: null
 			);
 		}
 
@@ -66,7 +66,25 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 						continue;
 					}
 
-					var pageName = urlRewriter(url).ToString().Split('?')[0].Split('#')[0];
+					var rewrittenUrlString = rewrittenUrl.ToString();
+					if (rewrittenUrlString.Contains("?"))
+					{
+						// If the rewritten URL still contains QueryString content then don't pull it down - presumably it varies by QueryString (if
+						// we want to always return the same content then the URL Rewriter should have pulled the QueryString content into the page
+						// name)
+						processedUrls.Add(url);
+						continue;
+					}
+
+					var pageName = rewrittenUrlString.Split('?')[0].Split('#')[0].Replace('/', '\\').TrimEnd('\\');
+					if (pageName == "")
+						pageName = "index.html";
+					else
+					{
+						var lastUrlSegment = pageName.Split('/').Last();
+						if (!lastUrlSegment.Contains(".") || (lastUrlSegment.Split('.').Last().Any(c => char.IsUpper(c)))) // TODO: Hack workaround to catch "ASP.Net" and make it "ASP.Net.html"
+							pageName += ".html";
+					}
 
 					// If it's html or css content then pass it through the appropriate default content rewriter and then the optionalRewriteIntercepter
 					// (if non-null). Otherwise just pull it as binary content, regardless of whether it's an image or a javascript file (no custom

@@ -69,8 +69,8 @@ namespace NeoCitiesTransformer
 		/// </summary>
 		private static void FetchBlog(Uri sourceSite, DirectoryInfo destination)
 		{
-			var urlRewriter = DefaultUrlRewriter.Get(
-				DefaultUrlRewriter.UrlRewriterQueryStringOptions.IncorporateQueryString,
+			var urlRewriter = DefaultNeocitiesUrlRewriter.Get(
+				DefaultNeocitiesUrlRewriter.UrlRewriterQueryStringOptions.IncorporateQueryString,
 				Tuple.Create(
 					new Uri("/feed", UriKind.Relative),				// Always maps this..
 					new Uri("http://www.productiverage.com/feed")	// .. onto this
