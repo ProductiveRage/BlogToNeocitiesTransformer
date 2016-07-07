@@ -14,7 +14,7 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 			Regenerate(
 				root,
 				destination,
-				DefaultUrlRewriter.Get(DefaultUrlRewriter.UrlRewriterQueryStringOptions.IncorporateQueryString),
+				DefaultNeocitiesUrlRewriter.Get(DefaultNeocitiesUrlRewriter.UrlRewriterQueryStringOptions.IncorporateQueryString),
 				null
 			);
 		}
@@ -79,13 +79,13 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 					else
 						contentRewriter = null;
 
+					var destinationFile = new FileInfo(Path.Combine(destination.FullName, pageName.TrimStart('\\')));
+					if (!destinationFile.Directory.Exists)
+						destinationFile.Directory.Create();
 					if (contentRewriter == null)
 					{
 						File.WriteAllBytes(
-							Path.Combine(
-								destination.FullName,
-								pageName
-							),
+							destinationFile.FullName,
 							webRequester.GetBinary(urlToRequest)
 						);
 					}
@@ -96,10 +96,7 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 							urlToRequest
 						);
 						File.WriteAllText(
-							Path.Combine(
-								destination.FullName,
-								pageName
-							),
+							destinationFile.FullName,
 							rewrittenContent.Content
 						);
 						foreach (var urlToAdd in rewrittenContent.ReferencedRelativeUrls)
