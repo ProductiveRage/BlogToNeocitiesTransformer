@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Blog.Models;
 using NeoCitiesTransformer.SearchIndexDataStorage;
 using NeoCitiesTransformer.SiteContentTransformer;
 using NeoCitiesTransformer.SiteContentTransformer.ContentRewriting;
@@ -22,59 +25,40 @@ namespace NeoCitiesTransformer
 			}
 			else
 				destination.Create();
-			var sourceSite = new Uri("http://localhost:4252"); // TODO new Uri("http://www.productiverage.com");
 			
-			var generatingNeoCitiesProductiveRageVersion = true;
-			if (!generatingNeoCitiesProductiveRageVersion)
-			{
-				// If generating for a generic site then this should do the job (or at least be a reasonable starting point)
-				FetchGenericSite(sourceSite, destination);
-			}
-			else
-			{
-				// For my Blog I need to apply some customisations and generate all of the javascript search index data
-				FetchBlog(sourceSite, destination);
-				var postSourceFolder = new DirectoryInfo(
-					@"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\Posts"
-				);
-				var searchIndexFile = new FileInfo(
-                    @"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\SearchIndex.dat"
-				);
-				JsonSearchIndexDataRecorder.Write(searchIndexFile, destination);
-				PlainTextContentRecorder.Write(postSourceFolder, destination);
-			}
+			var sourceSite = new Uri("http://localhost:4252"); // TODO new Uri("http://www.productiverage.com");
 
-			// 2013-07-25 DWR: This is no longer required now that NeoCities support drag-and-drop multiple file upload!
-			/*
-			// This is the workaround for the can-only-upload-single-files-through-the-NeoCities-interface limitation, it uploads files one at a time
-			// but requires a "neocities" cookie with an authorisation token in (acquired after you log in) and a csfr-token form field value. Both
-			// of these can be obtained by watching with Fiddler a single file upload being performed manually. There might be a better way to
-			// handle all of this but this approach has been enough to get me going.
-			var authCookieValue = "BAh7CUkiD3Nlc3Npb25faWQGOgZFVEkiRWRjNmRmNmJkOWY4NWY4Y2UwMGE1%0AMTQ5YThhY2ZhY2JkNmRlZDc3ODUyYTMyMGQ2ZmUxMmUxZmNkMzk4MGI0MmEG%0AOwBGSSIQX2NzcmZfdG9rZW4GOwBGSSIxZ0R6Tm81dld1SHQvbHp6TVJkaFcx%0ARndSS0dVbTdhNkVzNEMrOTNtS1Blcz0GOwBGSSIKZmxhc2gGOwBGewBJIgdp%0AZAY7AEZpAuoo%0A--db7b015d8335629edfb4115e0385105f6c3e37f4";
-			var csrfToken = "gDzNo5vWuHt/lzzMRdhW1FwRKGUm7a6Es4C+93mKPes=";
-			FileUploader.UploadFiles(
-				"neocities",
-				authCookieValue,
-				csrfToken,
-				destination
+			var postSourceFolder = new DirectoryInfo(
+				@"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\Posts"
 			);
-			 */
-		}
-
-		/// <summary>
-		/// This is the basic case, where a site's contents are retrieved and the only alterations are the url mappings (eg. flattening urls from "/Read/Me"
-		/// to "Read-Me.html")
-		/// </summary>
-		private static void FetchGenericSite(Uri sourceSite, DirectoryInfo destination)
-		{
-			NeoCitiesGenerator.Regenerate(sourceSite, destination);
+			if (!postSourceFolder.Exists)
+				throw new ArgumentException("postSourceFolder does not exist");
+			var posts = (new SingleFolderPostRetriever(postSourceFolder)).Get();
+			FetchBlog(
+				sourceSite,
+				destination,
+				additionalUrlsToRetrieve: posts.Select(post => new Uri("/Read/" + post.Id, UriKind.Relative))
+			);
+			// Copy all Posts into Archive/slug (there seem to be some links out in the wild that expect this.. not sure where they came from)
+			foreach (var post in posts)
+			{
+				var primaryFile = new FileInfo(Path.Combine(destination.FullName, post.Slug + ".html"));
+				if (!primaryFile.Exists)
+					throw new Exception("Whhhhhaaaa?!");
+				primaryFile.CopyTo(Path.Combine(destination.FullName, "Archive", post.Slug + ".html"), overwrite: false); // Shouldn't already exist
+			}
+			var searchIndexFile = new FileInfo(
+                @"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\SearchIndex.dat"
+			);
+			JsonSearchIndexDataRecorder.Write(searchIndexFile, destination);
+			PlainTextContentRecorder.Write(posts, destination);
 		}
 
 		/// <summary>
 		/// This is a version tailored to my Blog, I need to inject some extra scripts into the html pages and need to ensure that the RSS Feed link points
 		/// to the main domain since I haven't been able to get that working on the NeoCities site yet.
 		/// </summary>
-		private static void FetchBlog(Uri sourceSite, DirectoryInfo destination)
+		private static void FetchBlog(Uri sourceSite, DirectoryInfo destination, IEnumerable<Uri> additionalUrlsToRetrieve)
 		{
 			var urlRewriter = DefaultGitHubPagesUrlRewriter.Get(
 				Tuple.Create(
@@ -148,7 +132,8 @@ namespace NeoCitiesTransformer
 							)
 						)
 					)
-				)
+				),
+				additionalUrlsToRetrieve
 			);
 			File.WriteAllText(
 				Path.Combine(destination.FullName, "feed.xml"),

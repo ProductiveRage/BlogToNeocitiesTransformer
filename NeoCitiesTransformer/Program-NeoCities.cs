@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using Blog.Models;
 using NeoCitiesTransformer.SearchIndexDataStorage;
 using NeoCitiesTransformer.SiteContentTransformer;
 using NeoCitiesTransformer.SiteContentTransformer.ContentRewriting;
@@ -27,14 +28,16 @@ namespace NeoCitiesTransformer
 			{
 				// For my Blog I need to apply some customisations and generate all of the javascript search index data
 				FetchBlog(sourceSite, destination);
-				var postSourceFolder = new DirectoryInfo(
-					@"C:\Users\Me\Documents\Visual Studio 2010\Projects\Blog\Blog\App_Data\Posts"
-				);
 				var searchIndexFile = new FileInfo(
 					@"C:\Users\Me\Documents\Visual Studio 2010\Projects\Blog\Blog\App_Data\SearchIndex.dat"
 				);
 				JsonSearchIndexDataRecorder.Write(searchIndexFile, destination);
-				PlainTextContentRecorder.Write(postSourceFolder, destination);
+				var postSourceFolder = new DirectoryInfo(
+					@"C:\Users\Me\Documents\Visual Studio 2010\Projects\Blog\Blog\App_Data\Posts"
+				);
+				if (!postSourceFolder.Exists)
+ 					throw new ArgumentException("postSourceFolder does not exist");
+				PlainTextContentRecorder.Write((new SingleFolderPostRetriever(postSourceFolder)).Get(), destination);
 			}
 
 			// 2013-07-25 DWR: This is no longer required now that NeoCities support drag-and-drop multiple file upload!

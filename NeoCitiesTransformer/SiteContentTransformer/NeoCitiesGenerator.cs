@@ -23,7 +23,8 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 			Uri root,
 			DirectoryInfo destination,
 			UrlRewriter urlRewriter,
-			Func<IRewriteContent, IRewriteContent> optionalRewriteIntercepter)
+			Func<IRewriteContent, IRewriteContent> optionalRewriteIntercepter,
+			IEnumerable<Uri> optionalAdditionalUrlsToRetrieve = null)
 		{
 			if (root == null)
 				throw new ArgumentNullException("root");
@@ -50,14 +51,18 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 			{
 				new Uri("/", UriKind.Relative)
 			};
+			if (optionalAdditionalUrlsToRetrieve != null)
+			{
+				foreach (var url in optionalAdditionalUrlsToRetrieve)
+				{
+					if (url != null)
+						urlsToProcess.Add(url);
+				}
+			}
 			while (urlsToProcess.Any(u => !processedUrls.Contains(u)))
 			{
 				foreach (var url in urlsToProcess.ToArray().Where(u => !processedUrls.Contains(u)))
 				{
-					Console.WriteLine(url);
-					Console.WriteLine(urlRewriter(url));
-					Console.WriteLine();
-
 					var urlToRequest = new Uri(root, url);
 					var rewrittenUrl = urlRewriter(url);
 					if (rewrittenUrl.IsAbsoluteUri)
