@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Blog.Models;
 using BlogBackEnd.Models;
+using FullTextIndexer.Common.Lists;
 using NeoCitiesTransformer.Misc;
 using Newtonsoft.Json;
 
@@ -16,13 +17,10 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 		/// JsonSearchIndexDataRecorder generates the javascript search index data which identifies matches but this content is required to map that on to
 		/// Post titles and sections of content). These two classes are very specific to my Blog site implementation.
 		/// </summary>
-		public static void Write(DirectoryInfo postSourceFolder, DirectoryInfo destination)
+		public static void Write(NonNullImmutableList<Post> posts, DirectoryInfo destination)
 		{
-			if (postSourceFolder == null)
-				throw new ArgumentNullException("postSourceFolder");
-			postSourceFolder.Refresh();
-			if (!postSourceFolder.Exists)
-				throw new ArgumentException("postSourceFolder does not exist");
+			if (posts == null)
+				throw new ArgumentNullException("posts");
 			if (destination == null)
 				throw new ArgumentNullException("destination");
 			destination.Refresh();
@@ -32,7 +30,6 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			// Load the Post Data (all files will be compressed to take up as little space as possible in the NeoCities hosting)
 			// - Generate "SearchIndex-Titles.js"
 			// - Generate "SearchIndex-Content-{0}.txt"
-			var posts = (new SingleFolderPostRetriever(postSourceFolder)).Get();
 			var titlesFilename = "SearchIndex-Titles.lz.txt";
 			Console.WriteLine("Writing " + titlesFilename);
 			var titlesJson = JsonConvert.SerializeObject(
