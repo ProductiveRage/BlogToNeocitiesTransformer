@@ -92,7 +92,7 @@ namespace NeoCitiesTransformer
 				)
 			);
 
-			// TODO:
+			// Fix up the reference to the RSS feed
 			Func<IRewriteContent, IRewriteContent> localhostRssFeedLinkRewriter = contentRewriter => new ConditionalCustomPostRewriter(
 				contentRewriter,
 				sourceUri => true, // Just do this on every page
@@ -120,6 +120,16 @@ namespace NeoCitiesTransformer
 				"<p class=\"NoResults\">Searching..</p><noscript><p class=\"NoResults\"><em>Note: This functionality requires javascript.</em><br/><br/></p></noscript>"
 			);
 
+			// I released a post with a typo in the title and I can't be bothered to work out how to sort out a GitHub Pages redirect so I'm going to leave
+			// the title wrong in the source files and then just change the title itself here (while leaving the URL with the typo so that no redirect is
+			// required)
+			Func<IRewriteContent, IRewriteContent> singleLayerPerceptronTypoCorrectionUrlReverter = contentRewriter => new ConditionalCustomPostRewriter(
+				contentRewriter,
+				sourceUri => true, // Do this on every page
+				new Regex("Percepton"),
+				"Perceptron"
+			);
+
 			NeoCitiesGenerator.Regenerate(
 				sourceSite,
 				destination,
@@ -128,7 +138,9 @@ namespace NeoCitiesTransformer
 					localhostRssFeedLinkRewriter(
 						scriptInjectingContentRewriter(
 							javascriptSearchMessageContentRewriter(
-								contentRewriter
+								singleLayerPerceptronTypoCorrectionUrlReverter(
+									contentRewriter
+								)
 							)
 						)
 					)
@@ -136,17 +148,20 @@ namespace NeoCitiesTransformer
 				additionalUrlsToRetrieve
 			);
 			File.WriteAllText(
-				Path.Combine(destination.FullName, "feed.xml"),
+				Path.Combine(destination.FullName, "feed.xml"), // TODO: Fix up URLs
 				new WebDataRetriever().GetText(new Uri(sourceSite, "feed"))
 			);
 			File.WriteAllText(
 				Path.Combine(destination.FullName, "AutoComplete.json"),
 				new WebDataRetriever().GetText(new Uri(sourceSite, "AutoComplete.json"))
 			);
+
+			/* TODO: Retrieving the 404 page doesn't work when attempted this way so let's disable this code for now
 			File.WriteAllText(
 				Path.Combine(destination.FullName, "404.html"),
 				new WebDataRetriever().GetText(new Uri(sourceSite, "NotFound404")) // Need a way to get the extra resources here (maybe add a way to specify particular additional URLs to the Regenerate call?)
 			);
+			 */
 		}
 	}
 }
