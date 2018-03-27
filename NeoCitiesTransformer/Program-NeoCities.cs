@@ -12,13 +12,13 @@ namespace NeoCitiesTransformer
 	{
 		public static void Go()
 		{
-			var destination = new DirectoryInfo("Output");
+			var destination = new DirectoryInfo("NeoCities");
 			if (!destination.Exists)
 				destination.Create();
 
 			var sourceSite = new Uri("http://www.productiverage.com");
 			
-			var generatingNeoCitiesProductiveRageVersion = false;
+			var generatingNeoCitiesProductiveRageVersion = true;
 			if (!generatingNeoCitiesProductiveRageVersion)
 			{
 				// If generating for a generic site then this should do the job (or at least be a reasonable starting point)
@@ -29,11 +29,11 @@ namespace NeoCitiesTransformer
 				// For my Blog I need to apply some customisations and generate all of the javascript search index data
 				FetchBlog(sourceSite, destination);
 				var searchIndexFile = new FileInfo(
-					@"C:\Users\Me\Documents\Visual Studio 2010\Projects\Blog\Blog\App_Data\SearchIndex.dat"
+					@"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\SearchIndex.dat"
 				);
 				JsonSearchIndexDataRecorder.Write(searchIndexFile, destination);
 				var postSourceFolder = new DirectoryInfo(
-					@"C:\Users\Me\Documents\Visual Studio 2010\Projects\Blog\Blog\App_Data\Posts"
+					@"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\Posts"
 				);
 				if (!postSourceFolder.Exists)
  					throw new ArgumentException("postSourceFolder does not exist");
