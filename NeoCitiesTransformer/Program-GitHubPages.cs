@@ -153,7 +153,9 @@ namespace NeoCitiesTransformer
 			);
 			File.WriteAllText(
 				Path.Combine(destination.FullName, "feed.xml"), // TODO: Fix up URLs
-				new WebDataRetriever().GetText(new Uri(sourceSite, "feed"))
+				new WebDataRetriever()
+					.GetText(new Uri(sourceSite, "feed"))
+					.Replace("localhost:4252", "www.productiverage.com")
 			);
 			File.WriteAllText(
 				Path.Combine(destination.FullName, "AutoComplete.json"),
