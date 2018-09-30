@@ -155,6 +155,7 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			);
 		}
 
+#pragma warning disable IDE1006 // Naming Styles (I'll name my entities' properties what I like, thanks!)
 		// This should be a dictionary so that the resulting data is an associative array
 		private class JsTokenMatch
 		{
@@ -177,5 +178,6 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 			public int i { get; set; } // SourceIndex
 			public int l { get; set; } // SourceTokenLength
 		}
+#pragma warning restore IDE1006 // Naming Styles
 	}
 }
