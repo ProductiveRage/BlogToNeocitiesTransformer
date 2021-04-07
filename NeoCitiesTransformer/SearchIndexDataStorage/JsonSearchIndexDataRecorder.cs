@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 
 namespace NeoCitiesTransformer.SearchIndexDataStorage
 {
-	public static class JsonSearchIndexDataRecorder
+    public static class JsonSearchIndexDataRecorder
 	{
 		/// <summary>
 		/// This generates the "SearchIndex-SummaryDictionary.js" and "SearchIndex-{PostId}-CompleteDictionary.js" files that are used to perform the full
@@ -46,7 +46,7 @@ namespace NeoCitiesTransformer.SearchIndexDataStorage
 				{
 					k = weightedEntry.Key,
 					w = weightedEntry.Weight,
-					l = weightedEntry.SourceLocations.Select(sourceLocation => new JsSourceLocationDetail
+					l = weightedEntry.SourceLocationsIfRecorded.Select(sourceLocation => new JsSourceLocationDetail
 					{
 						f = sourceLocation.SourceFieldIndex,
 						w = sourceLocation.MatchWeightContribution,

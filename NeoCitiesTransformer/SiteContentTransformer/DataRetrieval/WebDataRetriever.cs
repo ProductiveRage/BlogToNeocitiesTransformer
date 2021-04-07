@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 
 namespace NeoCitiesTransformer.SiteContentTransformer.DataRetrieval
 {
@@ -13,6 +14,7 @@ namespace NeoCitiesTransformer.SiteContentTransformer.DataRetrieval
 			if (!url.IsAbsoluteUri)
 				throw new ArgumentException("The specified url must be absolute");
 
+			Console.WriteLine("Get " + url); // TODO
 			var webRequest = WebRequest.Create(url);
 			try
 			{

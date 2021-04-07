@@ -1,22 +1,25 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Blog.Models;
+using NeoCitiesTransformer.Misc;
 using NeoCitiesTransformer.SearchIndexDataStorage;
 using NeoCitiesTransformer.SiteContentTransformer;
 using NeoCitiesTransformer.SiteContentTransformer.ContentRewriting;
+using NeoCitiesTransformer.SiteContentTransformer.DataRetrieval;
 
 namespace NeoCitiesTransformer
 {
-	public class Program_NeoCities
+    public class Program_NeoCities
 	{
-		public static void Go()
+		public static async Task Go()
 		{
 			var destination = new DirectoryInfo("NeoCities");
 			if (!destination.Exists)
 				destination.Create();
 
-			var sourceSite = new Uri("http://www.productiverage.com");
+			var sourceSite = new Uri("https://www.productiverage.com");
 			
 			var generatingNeoCitiesProductiveRageVersion = true;
 			if (!generatingNeoCitiesProductiveRageVersion)
@@ -29,32 +32,14 @@ namespace NeoCitiesTransformer
 				// For my Blog I need to apply some customisations and generate all of the javascript search index data
 				FetchBlog(sourceSite, destination);
 				var searchIndexFile = new FileInfo(
-					@"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\SearchIndex.dat"
+					@"D:\github\Blog\Blog\App_Data\SearchIndex.dat"
 				);
 				JsonSearchIndexDataRecorder.Write(searchIndexFile, destination);
-				var postSourceFolder = new DirectoryInfo(
-					@"C:\Users\Dan\Documents\Visual Studio 2013\Projects\Blog\Blog\App_Data\Posts"
-				);
+				var postSourceFolder = new DirectoryContents(@"D:\github\Blog\Blog\App_Data\Posts");
 				if (!postSourceFolder.Exists)
- 					throw new ArgumentException("postSourceFolder does not exist");
-				PlainTextContentRecorder.Write((new SingleFolderPostRetriever(postSourceFolder)).Get(), destination);
+					throw new ArgumentException("postSourceFolder does not exist");
+				PlainTextContentRecorder.Write(await new SingleFolderPostRetriever(postSourceFolder).Get(), destination);
 			}
-
-			// 2013-07-25 DWR: This is no longer required now that NeoCities support drag-and-drop multiple file upload!
-			/*
-			// This is the workaround for the can-only-upload-single-files-through-the-NeoCities-interface limitation, it uploads files one at a time
-			// but requires a "neocities" cookie with an authorisation token in (acquired after you log in) and a csfr-token form field value. Both
-			// of these can be obtained by watching with Fiddler a single file upload being performed manually. There might be a better way to
-			// handle all of this but this approach has been enough to get me going.
-			var authCookieValue = "BAh7CUkiD3Nlc3Npb25faWQGOgZFVEkiRWRjNmRmNmJkOWY4NWY4Y2UwMGE1%0AMTQ5YThhY2ZhY2JkNmRlZDc3ODUyYTMyMGQ2ZmUxMmUxZmNkMzk4MGI0MmEG%0AOwBGSSIQX2NzcmZfdG9rZW4GOwBGSSIxZ0R6Tm81dld1SHQvbHp6TVJkaFcx%0ARndSS0dVbTdhNkVzNEMrOTNtS1Blcz0GOwBGSSIKZmxhc2gGOwBGewBJIgdp%0AZAY7AEZpAuoo%0A--db7b015d8335629edfb4115e0385105f6c3e37f4";
-			var csrfToken = "gDzNo5vWuHt/lzzMRdhW1FwRKGUm7a6Es4C+93mKPes=";
-			FileUploader.UploadFiles(
-				"neocities",
-				authCookieValue,
-				csrfToken,
-				destination
-			);
-			 */
 		}
 
 		/// <summary>
@@ -82,7 +67,7 @@ namespace NeoCitiesTransformer
 
 			// Replace the "Scripts-Site.js" script tag with four distinct script tags (one of which is "Scripts-Site.js" so we're really adding scripts to
 			// the existing markup rather than replacing / taking away), apply to all urls that are renamed to "*.html" 
-			Func<IRewriteContent, IRewriteContent> scriptInjectingContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
+			IRewriteContent scriptInjectingContentRewriter(IRewriteContent contentRewriter) => new ConditionalCustomPostRewriter(
 				contentRewriter,
 				sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase),
 				"<script type=\"text/javascript\" src=\"Scripts-Site.js\"></script>",
@@ -102,7 +87,7 @@ namespace NeoCitiesTransformer
 			);
 
 			// Replace the Google Analytics API Key with one specific to the NeoCities version of the Blog, apply to all urls that are mapped to "*.html"
-			Func<IRewriteContent, IRewriteContent> googleAnalyticsIdChangingContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
+			IRewriteContent googleAnalyticsIdChangingContentRewriter(IRewriteContent contentRewriter) => new ConditionalCustomPostRewriter(
 				contentRewriter,
 				sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase),
 				"UA-32312857-1",
@@ -112,7 +97,7 @@ namespace NeoCitiesTransformer
 			// Replace "http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js" with "//ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"
 			// so it will work over http or https connections (this will be in the main site when I update it next but I want to fix it on Neocities now
 			// since its links default to https and it's refusing to load jQuery in Chrome now)
-			Func<IRewriteContent, IRewriteContent> jQueryProtocolLessRequestsForHttps = contentRewriter => new ConditionalCustomPostRewriter(
+			IRewriteContent jQueryProtocolLessRequestsForHttps(IRewriteContent contentRewriter) => new ConditionalCustomPostRewriter(
 				contentRewriter,
 				sourceUri => urlRewriter(sourceUri).ToString().EndsWith(".html", StringComparison.InvariantCultureIgnoreCase),
 				"http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js",
@@ -122,7 +107,7 @@ namespace NeoCitiesTransformer
 			// Replace the "No search term entered" message with the text "Searching.." (the javascript in SearchPage.js will update this content if a
 			// search is being performed and only show "No search term entered" if no search term has indeed been specified). A requires-javscript
 			// message is also included in a "noscript" tag. This replacement is only required on the search.html page.
-			Func<IRewriteContent, IRewriteContent> javascriptSearchMessageContentRewriter = contentRewriter => new ConditionalCustomPostRewriter(
+			IRewriteContent javascriptSearchMessageContentRewriter(IRewriteContent contentRewriter) => new ConditionalCustomPostRewriter(
 				contentRewriter,
 				sourceUri => (sourceUri.PathAndQuery == "/Search"),
 				new Regex("<p class=\\\"NoResults\\\">\\s+No search term entered\\.\\.\\s+</p>"),
@@ -142,6 +127,10 @@ namespace NeoCitiesTransformer
 						)
 					)
 				)
+			);
+			File.WriteAllText(
+				Path.Combine(destination.FullName, "AutoComplete.json"),
+				new WebDataRetriever().GetText(new Uri(sourceSite, "AutoComplete.json"))
 			);
 		}
 	}

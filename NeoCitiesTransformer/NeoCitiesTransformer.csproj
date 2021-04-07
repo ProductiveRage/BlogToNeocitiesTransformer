@@ -1,107 +1,32 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E1849A06-7410-498D-BE26-1D07DD3D4487}</ProjectGuid>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+    <Platforms>AnyCPU</Platforms>
+    <LangVersion>latest</LangVersion>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NeoCitiesTransformer</RootNamespace>
-    <AssemblyName>NeoCitiesTransformer</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+
+  <PropertyGroup>
+    <NoWarn>1701;1702;SYSLIB0011</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CssParser" Version="1.3.0" />
+    <PackageReference Include="FullTextIndexer" Version="3.0.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.31" />
+    <PackageReference Include="Markdig" Version="0.23.0" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="5.0.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="Blog">
-      <HintPath>..\External Dependencies\Blog\Blog.dll</HintPath>
+      <HintPath>..\External Dependencies\Blog.dll</HintPath>
     </Reference>
     <Reference Include="BlogBackEnd">
-      <HintPath>..\External Dependencies\Blog\BlogBackEnd.dll</HintPath>
+      <HintPath>..\External Dependencies\BlogBackEnd.dll</HintPath>
     </Reference>
-    <Reference Include="CSSParser">
-      <HintPath>..\External Dependencies\CSSParser\CSSParser.dll</HintPath>
-    </Reference>
-    <Reference Include="FullTextIndexer.Common">
-      <HintPath>..\External Dependencies\Blog\FullTextIndexer.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="FullTextIndexer.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\External Dependencies\Blog\FullTextIndexer.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="HtmlAgilityPack">
-      <HintPath>..\External Dependencies\HtmlAgilityPack\Net40\HtmlAgilityPack.dll</HintPath>
-    </Reference>
-    <Reference Include="MarkdownSharp">
-      <HintPath>..\External Dependencies\Blog\MarkdownSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\External Dependencies\Json.Net - Net40\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Misc\LZStringCompress.cs" />
-    <Compile Include="Program-NeoCities.cs" />
-    <Compile Include="Program-GitHubPages.cs" />
-    <Compile Include="SearchIndexDataStorage\JsonSearchIndexDataRecorder.cs" />
-    <Compile Include="SearchIndexDataStorage\PlainTextContentRecorder.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\ConditionalCustomPostRewriter.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\DefaultGitHubPagesUrlRewriter.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\DefaultNeocitiesUrlRewriter.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\UrlRewriter.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\CssContentRewriter.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\HtmlContentRewriter.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\IRewriteContent.cs" />
-    <Compile Include="SiteContentTransformer\ContentRewriting\RewrittenContent.cs" />
-    <Compile Include="SiteContentTransformer\NeoCitiesGenerator.cs" />
-    <Compile Include="SiteContentTransformer\FileUploader.cs" />
-    <Compile Include="SiteContentTransformer\DataRetrieval\IRetrieveWebData.cs" />
-    <Compile Include="SiteContentTransformer\DataRetrieval\WebDataRetriever.cs" />
-    <Compile Include="SiteContentTransformer\SingleFileUploader.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

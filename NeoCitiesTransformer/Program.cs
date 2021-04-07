@@ -1,17 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Text.RegularExpressions;
-using NeoCitiesTransformer.SearchIndexDataStorage;
-using NeoCitiesTransformer.SiteContentTransformer;
-using NeoCitiesTransformer.SiteContentTransformer.ContentRewriting;
+﻿using System.Threading.Tasks;
 
 namespace NeoCitiesTransformer
 {
-	class Program
-	{
-		static void Main(string[] args)
-		{
-			Program_GitHubPages.Go();
-		}
-	}
+    class Program
+    {
+        static async Task Main()
+        {
+            // Don't upload 404.html (manually change its copyright year range if required)
+            await Program_GitHubPages.Go();
+
+            //await Program_NeoCities.Go(); // THIS COMES FROM THE LIVE SITE
+        }
+    }
 }

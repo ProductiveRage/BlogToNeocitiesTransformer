@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Web;
 using NeoCitiesTransformer.SiteContentTransformer.ContentRewriting;
 using NeoCitiesTransformer.SiteContentTransformer.DataRetrieval;
 
 namespace NeoCitiesTransformer.SiteContentTransformer
 {
-	public static class NeoCitiesGenerator
+    public static class NeoCitiesGenerator
 	{
 		public static void Regenerate(Uri root, DirectoryInfo destination)
 		{
@@ -102,7 +103,12 @@ namespace NeoCitiesTransformer.SiteContentTransformer
 					else
 						contentRewriter = null;
 
-					var destinationFile = new FileInfo(Path.Combine(destination.FullName, pageName.TrimStart('\\')));
+					// 2021-04-07 DWR: Most page names won't have any URL-encoded characters because they are generally formed as "URL friendly" names
+					// but there are some, such as the Archive-by-Tag pages, that DO have characters that will be URL-encoded in the content that is
+					// extracted now but we want the file name that's written to be the NON-encoded version
+					pageName = HttpUtility.UrlDecode(pageName.TrimStart('\\'));
+
+					var destinationFile = new FileInfo(Path.Combine(destination.FullName, pageName));
 					if (!destinationFile.Directory.Exists)
 						destinationFile.Directory.Create();
 					if (contentRewriter == null)
